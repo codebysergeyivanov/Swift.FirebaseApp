@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Firebase
 
 class MainViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
@@ -25,4 +26,13 @@ class MainViewController: UIViewController, UITableViewDelegate, UITableViewData
         return cell
     }
     
+    @IBAction func signOut(_ sender: UIBarButtonItem) {
+        let firebaseAuth = Auth.auth()
+     do {
+       try firebaseAuth.signOut()
+       dismiss(animated: true, completion: nil)
+     } catch let signOutError as NSError {
+        print ("Error signing out: %@", signOutError.localizedDescription)
+     }
+    }
 }
