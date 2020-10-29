@@ -13,10 +13,12 @@ class LoginViewController: UIViewController {
     @IBOutlet weak var username: UITextField!
     @IBOutlet weak var password: UITextField!
     
+    var ref: DatabaseReference!
     var handle: AuthStateDidChangeListenerHandle?
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        ref = Database.database().reference()
         errorLabel.alpha = 0
     }
     
@@ -62,6 +64,7 @@ class LoginViewController: UIViewController {
                 self.errorHandler()
                 print(error!.localizedDescription)
                 return }
+            self.ref.child("users").child(user.uid).setValue(["email": email])
             print("Created: \(user.email!)")
         }
     }

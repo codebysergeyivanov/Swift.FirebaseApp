@@ -139,7 +139,11 @@
                                 <action selector="signOut:" destination="ugZ-MR-lyt" id="5nY-x9-zHx"/>
                             </connections>
                         </barButtonItem>
-                        <barButtonItem key="rightBarButtonItem" systemItem="add" id="pp7-BJ-nzJ"/>
+                        <barButtonItem key="rightBarButtonItem" systemItem="add" id="pp7-BJ-nzJ">
+                            <connections>
+                                <action selector="onAdd:" destination="ugZ-MR-lyt" id="utd-L6-Nwg"/>
+                            </connections>
+                        </barButtonItem>
                     </navigationItem>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="ac9-CJ-Eiu" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
