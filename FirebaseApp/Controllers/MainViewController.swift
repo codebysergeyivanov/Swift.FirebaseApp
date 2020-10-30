@@ -12,14 +12,14 @@ class MainViewController: UIViewController, UITableViewDelegate, UITableViewData
     
     @IBOutlet weak var tableView: UITableView!
     
-    var ref: DatabaseReference!
+    var tasksRef: DatabaseReference!
     var tasks = Array<Task>()
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        ref = Database.database().reference()
         guard let userID = Auth.auth().currentUser?.uid else { return }
-        ref.child("users").child(userID).child("tasks").observe(.value, with: { [unowned self] (snapshot) in
+        tasksRef = Database.database().reference().ref.child("users").child(userID).child("tasks")
+        tasksRef.observe(.value, with: { [unowned self] (snapshot) in
             var _tasks = Array<Task>()
             for item in snapshot.children {
                 let task = Task(snapshot: item as! DataSnapshot)
@@ -47,20 +47,18 @@ class MainViewController: UIViewController, UITableViewDelegate, UITableViewData
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            guard let userID = Auth.auth().currentUser?.uid else { return }
             let taksUUID = tasks[indexPath.row].uuid
-            let taskRef = ref.child("users").child(userID).child("tasks").child(taksUUID)
+            let taskRef = tasksRef.child(taksUUID)
             taskRef.removeValue()
         }
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-       let cell = tableView.cellForRow(at: indexPath)
-       let isCompleted = !tasks[indexPath.row].completed
-       cell?.accessoryType = isCompleted ? .checkmark : .none
-        guard let userID = Auth.auth().currentUser?.uid else { return }
+        let cell = tableView.cellForRow(at: indexPath)
+        let isCompleted = !tasks[indexPath.row].completed
+        cell?.accessoryType = isCompleted ? .checkmark : .none
         let taksUUID = tasks[indexPath.row].uuid
-        let taskRef = ref.child("users").child(userID).child("tasks").child(taksUUID)
+        let taskRef = tasksRef.child(taksUUID)
         taskRef.updateChildValues(["completed": isCompleted])
     }
     
@@ -70,10 +68,10 @@ class MainViewController: UIViewController, UITableViewDelegate, UITableViewData
         let addAction = UIAlertAction(title: "Add", style: .default) { [unowned alert] _ in
             guard let text = alert.textFields?.first?.text else { return }
             if text != "" {
-                let ref = self.ref.child("users").child(userID).child("tasks").childByAutoId()
-                let key = ref.key!
+                let createdTaskRef = self.tasksRef.childByAutoId()
+                let key = createdTaskRef.key!
                 let task = Task(uid: userID, uuid: key, title: text)
-                ref.setValue(task.toDictionary())
+                createdTaskRef.setValue(task.toDictionary())
                 
             }
         }
@@ -89,11 +87,11 @@ class MainViewController: UIViewController, UITableViewDelegate, UITableViewData
     
     @IBAction func signOut(_ sender: UIBarButtonItem) {
         let firebaseAuth = Auth.auth()
-     do {
-       try firebaseAuth.signOut()
-       dismiss(animated: true, completion: nil)
-     } catch let signOutError as NSError {
-        print ("Error signing out: %@", signOutError.localizedDescription)
-     }
+        do {
+            try firebaseAuth.signOut()
+            dismiss(animated: true, completion: nil)
+        } catch let signOutError as NSError {
+            print ("Error signing out: %@", signOutError.localizedDescription)
+        }
     }
 }
