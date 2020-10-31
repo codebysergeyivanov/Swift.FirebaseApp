@@ -8,7 +8,8 @@
 import UIKit
 import Firebase
 
-class LoginViewController: UIViewController {
+class LoginViewController: UIViewController, UITextFieldDelegate {
+    @IBOutlet weak var scrollView: UIScrollView!
     @IBOutlet weak var errorLabel: UILabel!
     @IBOutlet weak var username: UITextField!
     @IBOutlet weak var password: UITextField!
@@ -18,9 +19,39 @@ class LoginViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.username.delegate = self
+        self.password.delegate = self
+        
         ref = Database.database().reference()
         errorLabel.alpha = 0
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(kbDidShow), name: UIResponder.keyboardDidShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(kbDidHide), name: UIResponder.keyboardDidHideNotification, object: nil)
+        hideKeyboardWhenTappedAround()
     }
+
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder()  //if desired
+        return false
+    }
+    
+    @objc func kbDidShow(notification: Notification) {
+        guard let userInfo = notification.userInfo else { return }
+        let kbFrameNSValue = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as! NSValue
+        let kbFrame = kbFrameNSValue.cgRectValue
+        let kbH = kbFrame.height
+        
+        let sv = self.view as! UIScrollView
+        sv.contentSize = CGSize(width: self.view.bounds.size.width, height: self.view.bounds.size.height + kbH)
+        sv.scrollIndicatorInsets = UIEdgeInsets(top: 0, left: 0, bottom: kbH, right: 0)
+        
+    }
+    
+    @objc func kbDidHide() {
+        (self.view as! UIScrollView).contentSize = CGSize(width: self.view.bounds.size.width, height: self.view.bounds.size.height)
+    }
+
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
@@ -70,3 +101,14 @@ class LoginViewController: UIViewController {
     }
 }
 
+extension UIViewController {
+    func hideKeyboardWhenTappedAround() {
+        let tap: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(UIViewController.dismissKeyboard))
+        tap.cancelsTouchesInView = false
+        view.addGestureRecognizer(tap)
+    }
+    
+    @objc func dismissKeyboard() {
+        view.endEditing(true)
+    }
+}
